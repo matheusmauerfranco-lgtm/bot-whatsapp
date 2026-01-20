@@ -36,14 +36,10 @@ app.post("/webhook", async (req, res) => {
 
     let reply = "";
 
-    if (/^oi|olá|ola|bom dia|boa tarde|boa noite/i.test(text)) {
-      reply =
-        "Olá! 👋 Me diga o que você procura (ex: 'airfryer', 'fone bluetooth', 'cadeira gamer') e eu te mando opções.";
-    } else if (text.length < 2) {
-      reply = "Pode mandar o nome do produto com mais detalhes 🙂";
-    } else {
-      const q = encodeURIComponent(text);
-      reply =
+   reply =
+  "Olá! Sou o assistente da Loja do Matheus 😄\n\n" +
+  "Digite o nome do produto que eu te envio links da Amazon e Magalu com desconto.";
+
         `Encontrei opções para: *${text}*\n\n` +
         `1) Amazon: https://www.amazon.com.br/s?k=${q}\n` +
         `2) Magalu: https://www.magazinevoce.com.br/magazinematheusmauer/busca/${q}/\n\n` +
