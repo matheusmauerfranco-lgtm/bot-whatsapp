@@ -1,5 +1,5 @@
-﻿const express = require("express");
-const axios = require("axios");
+﻿const MAGALU_STORE = "magazinematheusmauer"; // seu Magazine Você
+const AMAZON_TAG = process.env.AMAZON_TAG || ""; // ex: "seutag-20"
 
 const app = express();
 app.use(express.json());
@@ -38,6 +38,18 @@ app.post("/webhook", async (req, res) => {
 
 const q = encodeURIComponent(text);
 
+const magaluLink = `https://www.magazinevoce.com.br/${MAGALU_STORE}/busca/${q}/`;
+
+let amazonLink = `https://www.amazon.com.br/s?k=${q}`;
+if (AMAZON_TAG && AMAZON_TAG.trim().length > 0) {
+  amazonLink += `&tag=${encodeURIComponent(AMAZON_TAG.trim())}`;
+}
+
+reply =
+  `🛒 *Encontrei opções para:* *${text}*\n\n` +
+  `✅ Amazon: ${amazonLink}\n` +
+  `✅ Magalu: ${magaluLink}\n\n` +
+  `Se quiser, diga: *barato* / *custo-benefício* / *melhor avaliado*`;
 reply =
 "🛒 *Encontrei as melhores opções para:* " + text + "\n\n" +
 
