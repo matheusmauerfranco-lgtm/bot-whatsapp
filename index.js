@@ -34,25 +34,24 @@ app.post("/webhook", async (req, res) => {
     const from = msg.from;
     const text = msg.text?.body?.trim() || "";
 
-    let reply = "";
+  let reply = "";
 
-   reply =
-  "Olá! Sou o assistente da Loja do Matheus 😄\n\n" +
-  "Digite o nome do produto que eu te envio links da Amazon e Magalu com desconto.";
+const q = encodeURIComponent(text);
 
-        `Encontrei opções para: *${text}*\n\n` +
-        `1) Amazon: https://www.amazon.com.br/s?k=${q}\n` +
-        `2) Magalu: https://www.magazinevoce.com.br/magazinematheusmauer/busca/${q}/\n\n` +
-        `Me diga: *barato* / *custo-benefício* / *top*`;
-    }
+reply =
+"🛒 *Encontrei as melhores opções para:* " + text + "\n\n" +
 
-    await sendText(from, reply);
-    return res.sendStatus(200);
-  } catch (err) {
-    console.error("Webhook error:", err?.response?.data || err.message);
-    return res.sendStatus(200);
-  }
-});
+"🔥 *COMPRAR AGORA*\n" +
+"• Amazon: https://www.amazon.com.br/s?k=" + q + "\n" +
+"• Magalu: https://www.magazinevoce.com.br/magazinematheusmauer/busca/" + q + "/\n\n" +
+
+"💬 Posso te ajudar a escolher:\n" +
+"👉 barato\n" +
+"👉 custo-benefício\n" +
+"👉 melhor avaliado\n\n" +
+
+"Digite como você prefere 😉";
+
 
 // --- Enviar mensagem ---
 async function sendText(to, body) {
