@@ -5,15 +5,13 @@ const app = express();
 app.use(express.json());
 
 // ===== CONFIG =====
-const TOKEN = process.env.WHATSAPP_TOKEN; // Token da Meta (Cloud API)
+const TOKEN = process.env.WHATSAPP_TOKEN; // token da Meta (Cloud API)
 const PHONE_NUMBER_ID = process.env.PHONE_ID; // Phone Number ID
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN; // Token de verificação do webhook
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN; // token de verificação do webhook
 
-// Sua loja Magalu (Magazine Você)
-const MAGALU_STORE = "magazinematheusmauer";
-
-// Sua tag de afiliado Amazon (Render env: AMAZON_TAG = matheusmaue03-20)
-const AMAZON_TAG = process.env.AMAZON_TAG || "";
+// Afiliados
+const MAGALU_STORE = "magazinematheusmauer"; // sua loja Magazine Você
+const AMAZON_TAG = process.env.AMAZON_TAG || ""; // ex: matheusmaue03-20
 
 // ===== WEBHOOK VERIFY (GET) =====
 app.get("/webhook", (req, res) => {
@@ -37,47 +35,50 @@ app.post("/webhook", async (req, res) => {
     const msg = value?.messages?.[0];
     if (!msg) return res.sendStatus(200);
 
-    const from = msg.from; // telefone do cliente (55DDDNUMERO)
+    const from = msg.from; // 55DDDNUMERO
     const text = (msg.text?.body || "").trim();
 
-    // Ignora mensagens vazias
     if (!text) return res.sendStatus(200);
 
-    // Monta links
+    // ===== LINKS =====
     const q = encodeURIComponent(text);
 
-    const magaluLink = `https://www.magazinevoce.com.br/${MAGALU_STORE}/busca/${q}/`;
+    const magaluBase = `https://www.magazinevoce.com.br/${MAGALU_STORE}/busca/${q}/`;
 
-    let amazonLink = `https://www.amazon.com.br/s?k=${q}`;
+    let amazonBase = `https://www.amazon.com.br/s?k=${q}`;
     if (AMAZON_TAG.trim()) {
-      amazonLink += `&tag=${encodeURIComponent(AMAZON_TAG.trim())}`;
+      amazonBase += `&tag=${encodeURIComponent(AMAZON_TAG.trim())}`;
     }
 
-    // ===== LÓGICA DO BOT =====
+    // ===== BOT =====
     let reply = "";
 
     if (/^(oi|olá|ola|bom dia|boa tarde|boa noite)\b/i.test(text)) {
       reply =
         "Olá! 👋 Sou o assistente da Loja do Matheus.\n\n" +
-        "Me mande o *nome do produto* (ex: airfryer, fone bluetooth, cadeira gamer) que eu te envio opções com desconto 😄";
+        "Me mande o *nome do produto* (ex: airfryer, fone bluetooth, cadeira gamer) que eu já te devolvo 3 opções: *barato*, *custo-benefício* e *premium* ✅";
     } else if (text.length < 2) {
       reply = "Pode mandar o nome do produto com mais detalhes 🙂";
-    } else if (/^(barato|custo|custo-beneficio|custo benefício|melhor|melhor avaliado|top)\b/i.test(text)) {
-      // Se o cliente mandar uma preferência, ainda assim manda links (simples e direto)
-      reply =
-        `Fechado! Vou no *${text}* ✅\n\n` +
-        `🛒 Amazon: ${amazonLink}\n` +
-        `🛒 Magalu: ${magaluLink}\n\n` +
-        "Se quiser, me diga a *marca* ou um *valor máximo* (ex: até 300) pra eu afinar melhor.";
     } else {
+      // 3 opções automáticas (sem perguntar nada)
+      const amazonBarato = `${amazonBase}&s=price-asc-rank`;
+      const amazonPremium = `${amazonBase}&s=review-rank`;
+
+      const magaluBarato = `${magaluBase}?sort=price_asc`;
+      const magaluPremium = `${magaluBase}?sort=best_seller`;
+
       reply =
-        `🛒 *Encontrei opções para:* *${text}*\n\n` +
-        `✅ Amazon: ${amazonLink}\n` +
-        `✅ Magalu: ${magaluLink}\n\n` +
-        "Pra eu te indicar mais certeiro, diga uma destas opções:\n" +
-        "👉 *barato*\n" +
-        "👉 *custo-benefício*\n" +
-        "👉 *melhor avaliado*";
+        `🛒 *${text}* — separei 3 opções automáticas:\n\n` +
+        `1) 💸 *Barato*\n` +
+        `• Amazon: ${amazonBarato}\n` +
+        `• Magalu: ${magaluBarato}\n\n` +
+        `2) ⚖️ *Custo-benefício*\n` +
+        `• Amazon: ${amazonBase}\n` +
+        `• Magalu: ${magaluBase}\n\n` +
+        `3) ⭐ *Premium / Top*\n` +
+        `• Amazon: ${amazonPremium}\n` +
+        `• Magalu: ${magaluPremium}\n\n` +
+        `✅ Se você me disser *um preço máximo* (ex: "até 300") ou *marca*, eu afino ainda mais.`;
     }
 
     await sendText(from, reply);
@@ -114,5 +115,6 @@ async function sendText(to, body) {
   );
 }
 
+// ===== START SERVER =====
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("✅ Bot rodando na porta", PORT));
